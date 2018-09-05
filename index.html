@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="da">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BABUSHKA</title>
+
+
+    <style>
+        .main {
+            max-width: 1000px;
+            margin: auto;
+        }
+
+
+        body {
+            background-color: #ededed;
+            font-family: 'Lato', sans-serif;
+            color: #b94646;
+            position: relative;
+            margin: 0;
+            min-height: 100%;
+            padding: 20px;
+
+        }
+
+        button {
+            background-color: #b94646;
+            border: none;
+            color: #ededed;
+            padding: 15px 32px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            cursor: pointer;
+        }
+
+        nav {
+            display: flex;
+            background-color: #8ad0f1;
+            padding: 2px;
+            font-family: 'Oswald', sans-serif;
+            flex-wrap: wrap;
+            text-transform: uppercase;
+            justify-content: center;
+
+
+        }
+
+        h1 {
+
+            font-family: fantasy;
+            font-size: 3em;
+            text-transform: capitalize;
+        }
+
+        p {
+            font-family: fantasy;
+        }
+
+        h2 {
+            font-family: fantasy;
+            font-size: 2em;
+            text-decoration-line: underline;
+
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+        }
+
+        @media only screen and (max-width: 1229px) {
+            .container {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @media only screen and (max-width: 780px) {
+            .ret img {
+                width: 100%
+            }
+            .container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media only screen and (max-width: 480px) {
+            .ret img {
+                width: 100%
+            }
+            .container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        #modal {
+            width: 100vw;
+            height: 100vh;
+            position: fixed;
+            background-color: rgba(0, 0, 0, .7);
+            text-align: center;
+            /*            display: none;*/
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        #modal-content {
+            width: 70vw;
+            height: 70vh;
+            background-color: rgba(250, 250, 250, 1);
+            margin: auto;
+
+
+        }
+
+        #modal.vis {
+            /*display: block;*/
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        #modal img {
+            height: 50vh;
+            width: 40vw;
+        }
+    </style>
+</head>
+
+<body>
+    <section id="modal">
+        <button>closed</button>
+        <div id="modal-content">
+
+            <h2 class="modal-navn">
+            </h2>
+            <img class="modal-billede" src="" alt="">
+        </div>
+    </section>
+    <header>
+        <h1></h1>
+        <h2>Menu</h2>
+        <nav>
+
+            <button class="menu-item" data-mad="forretter"> Forretter</button>
+            <button class="menu-item" data-mad="hovedretter"> Hovedretter</button>
+            <button class="menu-item" data-mad="desserter"> Desserter</button>
+
+        </nav>
+    </header>
+    <main class="container">
+        <section class="data-container"></section>
+    </main>
+    <template class="retter-template">
+            <article>
+                <h2 class = "data-navn"></h2>
+                <img class = "data-billede"  src = "" alt = "">
+                <p class="data-kortbeskrivelse"></p>
+                <p>Pris: <span class="data-pris"></span> DKK </p>
+            </article>
+        </template>
+
+    <footer>
+        © BABUSHKA 2018
+
+    </footer>
+    <section id="knappen">
+        <a href="#top" class="button1">GÅ TIL TOP</a>
+
+
+    </section>
+
+
+    <script>
+        let modal = document.querySelector("#modal");
+        let dest = document.querySelector(".data-container"),
+            retter,
+            madFilter = "alle";
+        document.addEventListener("DOMContentLoaded", hentJson);
+
+        async function hentJson() {
+            let jsonData = await fetch("json/menu.json");
+            retter = await jsonData.json();
+
+            console.log(retter);
+
+            visRetter();
+        }
+        document.querySelectorAll(".menu-item").forEach(knap => {
+            knap.addEventListener("click", filtrering)
+        });
+
+        function filtrering() {
+            dest.textContent = "";
+            madFilter = this.getAttribute("data-mad");
+            console.log(madFilter);
+            visRetter();
+        }
+
+
+        function visRetter() {
+
+            let dest = document.querySelector(".data-container");
+            temp = document.querySelector(".retter-template");
+            //            let modtager = document.querySelector(".container");
+
+            retter.forEach(ret => {
+                if (ret.kategori == madFilter || madFilter == "alle") {
+                    let klon = temp.cloneNode(true).content;
+                    document.querySelector("header h1").textContent = madFilter;
+                    klon.querySelector("img").src = ret.billede;
+                    klon.querySelector("img").addEventListener("click", () => {
+                        visModal(ret);
+                    });
+
+                    klon.querySelector(".data-navn").textContent = ret.navn;
+                    klon.querySelector(".data-billede").src = "imgs/small/" + ret.billede + "-sm.jpg";
+                    klon.querySelector(".data-billede").alt = "billede" + ret.navn;
+                    //                    klon.querySelector(".data-billede").addEventListener("click", () => {
+                    //                        window.location.href = "single.html?id=" + ret.id;
+                    //                    });
+                    klon.querySelector(".data-kortbeskrivelse").textContent = ret.kortbeskrivelse;
+                    klon.querySelector(".data-pris").textContent = ret.pris;
+                    dest.appendChild(klon);
+                }
+
+            });
+        }
+
+        function visModal(retten) {
+
+            modal.classList.add("vis");
+            modal.querySelector(".modal-navn").textContent = retten.navn;
+            modal.querySelector(".modal-billede").src = "imgs/small/" + retten.billede + "-sm.jpg";
+            modal.querySelector(".modal-billede").alt = "Foto af " + retten.navn;
+            modal.querySelector("button").addEventListener("click", skjulModal);
+        }
+
+        function skjulModal() {
+            //            window.scrollTo(0);
+            modal.classList.remove("vis");
+
+        }
+    </script>
+
+
+</body>
+
+</html>
